@@ -48,6 +48,7 @@ export default function PublicLeadForm() {
             Submit another
           </button>
         </div>
+      </div>
     )
   }
 
@@ -144,5 +145,6 @@ export default function PublicLeadForm() {
           </Link>
         </p>
       </div>
-  )
+    </div>
+    )
 }

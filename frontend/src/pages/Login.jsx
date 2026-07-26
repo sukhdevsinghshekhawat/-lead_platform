@@ -57,5 +57,7 @@ export default function Login() {
           <Link to="/lead/new" className="text-indigo-600 hover:text-indigo-800 font-medium">Submit a new lead</Link>
         </p>
       </div>
-  )
+      </div>
+    </div>
+    )
 }
