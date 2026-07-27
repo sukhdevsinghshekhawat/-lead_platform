@@ -4911,3 +4911,70 @@ Processing by Api::LeadsController#index as HTML
 Completed 200 OK in 75ms (Views: 1.1ms | ActiveRecord: 6.4ms (23 queries, 7 cached) | GC: 4.0ms)
 
 
+Started GET "/api/me" for ::1 at 2026-07-27 07:41:33 +0530
+  [1m[36mActiveRecord::SchemaMigration Load (1.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+Processing by Api::AuthController#me as HTML
+  [1m[36mUser Load (1.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1 /*action='me',application='Backend',controller='auth'*/[0m
+  ↳ app/controllers/application_controller.rb:18:in `authenticate_request'
+Completed 200 OK in 65ms (Views: 0.3ms | ActiveRecord: 13.2ms (1 query, 0 cached) | GC: 0.0ms)
+
+
+Started GET "/api/me" for ::1 at 2026-07-27 07:41:34 +0530
+Processing by Api::AuthController#me as HTML
+  [1m[36mUser Load (0.5ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1 /*action='me',application='Backend',controller='auth'*/[0m
+  ↳ app/controllers/application_controller.rb:18:in `authenticate_request'
+Completed 200 OK in 2ms (Views: 0.1ms | ActiveRecord: 0.4ms (1 query, 0 cached) | GC: 0.0ms)
+
+
+Started GET "/api/leads?page=1&per_page=10" for ::1 at 2026-07-27 07:41:34 +0530
+Processing by Api::LeadsController#index as HTML
+  Parameters: {"page"=>"1", "per_page"=>"10"}
+  [1m[36mUser Load (0.4ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/controllers/application_controller.rb:18:in `authenticate_request'
+  [1m[36mLead Load (1.2ms)[0m  [1m[34mSELECT "leads".* FROM "leads" WHERE "leads"."assigned_to_id" = 2 ORDER BY "leads"."created_at" DESC LIMIT 10 OFFSET 0 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/controllers/api/leads_controller.rb:16:in `map'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.7ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 11 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 11 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 10 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 10 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 8 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 8 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 5 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 5 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 4 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 4 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 2 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 2 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = 2 LIMIT 1[0m
+  ↳ app/serializers/lead_serializer.rb:27:in `assigned_user'
+  [1m[36mNote Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "notes" WHERE "notes"."lead_id" = 1 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:19:in `as_json'
+  [1m[36mActivity Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "activities" WHERE "activities"."lead_id" = 1 /*action='index',application='Backend',controller='leads'*/[0m
+  ↳ app/serializers/lead_serializer.rb:20:in `as_json'
+Completed 200 OK in 93ms (Views: 0.2ms | ActiveRecord: 12.1ms (23 queries, 7 cached) | GC: 22.1ms)
+
+

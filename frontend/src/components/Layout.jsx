@@ -59,6 +59,11 @@ export default function Layout({ children }) {
           </div>
         </header>
         <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <footer className="text-center py-3 text-xs text-gray-500 border-t border-gray-200">
+          <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
+            Built for Digital Heroes Training Task By Sukhdev Singh
+          </a>
+        </footer>
       </div>
     </div>
     )

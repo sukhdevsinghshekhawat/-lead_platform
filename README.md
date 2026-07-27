@@ -854,6 +854,7 @@ docker run -p 5173:5173 leadmanager-frontend
 | Automated Tests | ⚠️ | Backend only (RSpec) — frontend tests not implemented |
 | Deployment | ❌ | Not yet deployed — no live URLs available |
 | API Documentation | ✅ | Full documentation in this README |
+| Live Build Footer | ✅ | Added to Layout.jsx, Login.jsx, PublicLeadForm.jsx |
 | .env.example files | ✅ | `backend/.env.example` and `frontend/.env.example` |
 | Permission Matrix | ✅ | Documented in Role Permissions section |
 | ER Diagram & Relationships | ✅ | Documented in Database Schema section |
@@ -866,17 +867,13 @@ The frontend footer must display:
 
 linked to **https://digitalheroesco.com**
 
-**Current Status:** ❌ Not implemented
+**Current Status:** ✅ Implemented in `frontend/src/components/Layout.jsx`, `frontend/src/pages/Login.jsx`, and `frontend/src/pages/PublicLeadForm.jsx`
 
-**Implementation Note:** The footer should be added to `frontend/src/components/Layout.jsx` (for authenticated pages) and directly to `frontend/src/pages/Login.jsx` and `frontend/src/pages/PublicLeadForm.jsx` (for public pages). Example:
-
-```jsx
-<footer className="text-center py-4 text-sm text-gray-500 border-t border-gray-200">
-  <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition">
-    Built for Digital Heroes Training Task
-  </a>
-</footer>
+The footer displays:
+```html
+Built for Digital Heroes Training Task By Sukhdev Singh
 ```
+linked to **https://digitalheroesco.com**
 
 ## License
 

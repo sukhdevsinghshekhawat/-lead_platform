@@ -57,6 +57,11 @@ export default function Login() {
           <Link to="/lead/new" className="text-indigo-600 hover:text-indigo-800 font-medium">Submit a new lead</Link>
         </p>
       </div>
+      <footer className="mt-6 text-center text-xs text-gray-400">
+        <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
+          Built for Digital Heroes Training Task By Sukhdev Singh
+        </a>
+      </footer>
       </div>
     </div>
     )
