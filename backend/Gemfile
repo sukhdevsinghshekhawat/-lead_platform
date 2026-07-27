@@ -11,6 +11,10 @@ gem "pundit"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 
+# Rails 8 production dependencies (required by config/environments/production.rb)
+gem "solid_queue"
+gem "solid_cache"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "rspec-rails"
