@@ -37,7 +37,7 @@ export default function PublicLeadForm() {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4 text-center">
+        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-md w-full mx-4 text-center">
           <div className="text-5xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
           <p className="text-gray-500 mb-6">Your inquiry has been received. Our team will get back to you shortly.</p>
@@ -54,7 +54,7 @@ export default function PublicLeadForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 py-12">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full mx-4">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-lg w-full mx-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Get in Touch</h1>
           <p className="text-gray-500 mt-2">Tell us about your project and we'll help you out.</p>
@@ -144,12 +144,12 @@ export default function PublicLeadForm() {
             Sign in
           </Link>
         </p>
+        <footer className="mt-6 text-center text-xs text-gray-400">
+          <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
+            Built for Digital Heroes Training Task By Sukhdev Singh
+          </a>
+        </footer>
       </div>
-      <footer className="mt-6 text-center text-xs text-gray-400">
-        <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
-          Built for Digital Heroes Training Task By Sukhdev Singh
-        </a>
-      </footer>
     </div>
-    )
+  )
 }

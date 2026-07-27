@@ -53,13 +53,13 @@ export default function Dashboard() {
               const barColor = 'bg-' + card.bg.replace('bg-', '').replace('50', '500')
               return (
                 <div key={card.key} className="flex items-center">
-                  <span className="w-32 text-sm text-gray-600">{card.icon} {card.label}</span>
-                  <div className="flex-1 mx-4">
+                  <span className="w-24 sm:w-32 text-sm text-gray-600 truncate">{card.icon} {card.label}</span>
+                  <div className="flex-1 mx-2 sm:mx-4">
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div className={'h-full rounded-full transition-all duration-500 ' + barColor} style={{ width: pct + '%' }} />
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-gray-700 w-12 text-right">{value}</span>
+                  <span className="text-sm font-medium text-gray-700 w-8 sm:w-12 text-right">{value}</span>
                 </div>
               )
             })}

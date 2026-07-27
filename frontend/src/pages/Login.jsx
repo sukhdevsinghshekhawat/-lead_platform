@@ -26,7 +26,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md mx-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">LeadManager</h1>
           <p className="text-gray-500 mt-2">Sign in to your account</p>
@@ -53,16 +53,16 @@ export default function Login() {
             <p><span className="font-medium">Admin:</span> admin@example.com / password123</p>
             <p><span className="font-medium">Member:</span> member1@example.com / password123</p>
           </div>
+        </div>
         <p className="mt-6 text-center text-sm text-gray-500">
           <Link to="/lead/new" className="text-indigo-600 hover:text-indigo-800 font-medium">Submit a new lead</Link>
         </p>
-      </div>
-      <footer className="mt-6 text-center text-xs text-gray-400">
-        <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
-          Built for Digital Heroes Training Task By Sukhdev Singh
-        </a>
-      </footer>
+        <footer className="mt-6 text-center text-xs text-gray-400">
+          <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition font-medium">
+            Built for Digital Heroes Training Task By Sukhdev Singh
+          </a>
+        </footer>
       </div>
     </div>
-    )
+  )
 }

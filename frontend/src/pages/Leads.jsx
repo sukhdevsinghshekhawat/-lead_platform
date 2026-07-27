@@ -68,8 +68,8 @@ export default function Leads() {
     <div>
       {/* Filters */}
       <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex-1 min-w-[250px]">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-center">
+          <div className="w-full sm:flex-1 min-w-[250px]">
             <input
               type="text"
               placeholder="Search by name, email, company..."
@@ -78,27 +78,29 @@ export default function Leads() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-          {isAdmin && (
+          <div className="flex flex-wrap gap-4 sm:gap-2">
             <select
-              value={assignedFilter}
-              onChange={(e) => { setAssignedFilter(e.target.value); setPage(1) }}
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">All Assignees</option>
-              {usersData?.data?.map((u) => (
-                <option key={u.id} value={u.id}>{u.name}</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
               ))}
             </select>
-          )}
+            {isAdmin && (
+              <select
+                value={assignedFilter}
+                onChange={(e) => { setAssignedFilter(e.target.value); setPage(1) }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">All Assignees</option>
+                {usersData?.data?.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
       </div>
 
@@ -109,11 +111,11 @@ export default function Leads() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Email</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Company</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Assigned To</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Assigned To</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Date</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -136,14 +138,14 @@ export default function Leads() {
                         {lead.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{lead.company || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{lead.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">{lead.company || '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[lead.status] || 'bg-gray-100 text-gray-800'}`}>
                         {STATUS_LABELS[lead.status] || lead.status?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell">
                       {lead.assigned_to ? (
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{lead.assigned_to.name}</span>
@@ -165,7 +167,7 @@ export default function Leads() {
                         <span className="text-gray-400">Unassigned</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-500 hidden md:table-cell">
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
@@ -195,7 +197,7 @@ export default function Leads() {
 
         {/* Pagination */}
         {data?.meta?.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-white border-t border-gray-200 gap-3">
             <p className="text-sm text-gray-500">
               Page {data.meta.current_page} of {data.meta.total_pages}
             </p>
