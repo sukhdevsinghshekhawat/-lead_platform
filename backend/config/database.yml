@@ -88,7 +88,7 @@ production:
   primary: &primary_production
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
+    max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   cache:
     <<: *primary_production
     database: backend_production
