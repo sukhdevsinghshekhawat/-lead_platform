@@ -5,6 +5,8 @@ A production-ready Lead Management Application built with Ruby on Rails 8 (API-o
 ## Table of Contents
 
 - [Overview](#overview)
+- [Authentication](#authentication)
+- [Role Permissions Matrix](#role-permissions-matrix)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -14,10 +16,53 @@ A production-ready Lead Management Application built with Ruby on Rails 8 (API-o
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
 - [Deployment](#deployment)
+- [Demo Credentials](#demo-credentials)
+- [Assignment Requirement Verification](#assignment-requirement-verification)
+- [Live Build Requirement](#live-build-requirement)
+- [License](#license)
 
 ## Overview
 
 LeadManager CRM is a full-featured lead management system designed for small sales teams. It provides public lead capture, JWT-based authentication, role-based authorization (Admin/Member), lead lifecycle management, notes, activity timeline, and a professional dashboard.
+
+## Authentication
+
+### JWT Authentication Flow
+
+The application uses **JSON Web Tokens (JWT)** for stateless authentication.
+
+1. **Login**: User sends `POST /api/login` with email and password.
+2. **Token Issuance**: Server validates credentials, generates a JWT (24-hour expiry) containing the user ID, and returns it in the response.
+3. **Token Storage**: The frontend stores the token in `localStorage`.
+4. **Authenticated Requests**: The frontend attaches the token as `Authorization: Bearer <token>` header on every API request via Axios interceptor.
+5. **Token Verification**: The server's `ApplicationController#authenticate_request` decodes the token, looks up the user, and sets `@current_user`. If invalid/expired, returns `401 Unauthorized`.
+6. **Logout**: The frontend removes the token from `localStorage`; no server-side logout is needed.
+
+### Authorization Middleware
+
+- **Pundit** handles authorization at the controller level via `authorize @lead`.
+- **`ApplicationPolicy`** provides base rules. **`LeadPolicy`** defines action-specific permissions (admin vs member, assigned vs unassigned).
+- **`require_admin!`** is used in controllers for admin-only endpoints (user management).
+- **`policy_scope`** scopes queries so members only see their assigned leads.
+
+### Protected Routes
+
+- Protected API routes call `before_action :authenticate_request`.
+- Frontend uses `<ProtectedRoute>` component to redirect unauthenticated users to `/login`.
+
+## Role Permissions Matrix
+
+| Feature | Admin | Member (Assigned Lead) | Member (Unassigned Lead) |
+|---|---|---|---|
+| View Leads List | ✅ All leads | ✅ Assigned only | ✅ Assigned only |
+| View Lead Details | ✅ | ✅ | ❌ |
+| Create Lead | ✅ (via API + form) | ✅ (via API + public form) | ✅ (via public form) |
+| Edit Lead | ✅ | ✅ | ❌ |
+| Delete Lead | ✅ | ❌ | ❌ |
+| Assign Lead | ✅ | ❌ | ❌ |
+| Change Lead Status | ✅ | ✅ | ❌ |
+| Add Notes | ✅ | ✅ | ❌ |
+| Manage Users | ✅ | ❌ | ❌ |
 
 ## Features
 
@@ -174,6 +219,8 @@ The frontend will be available at `http://localhost:5173` and the backend at `ht
 | `created_at` | datetime | |
 | `updated_at` | datetime | |
 
+**Indexes:** `index_users_on_email` (unique)
+
 ### Leads
 | Column | Type | Description |
 |--------|------|-------------|
@@ -188,6 +235,9 @@ The frontend will be available at `http://localhost:5173` and the backend at `ht
 | `created_at` | datetime | |
 | `updated_at` | datetime | |
 
+**Foreign Keys:** `assigned_to_id` references `users(id)`
+**Indexes:** `index_leads_on_assigned_to_id`, `index_leads_on_created_at`, `index_leads_on_email`, `index_leads_on_status`
+
 ### Notes
 | Column | Type | Description |
 |--------|------|-------------|
@@ -197,6 +247,9 @@ The frontend will be available at `http://localhost:5173` and the backend at `ht
 | `message` | text | Note content |
 | `created_at` | datetime | |
 | `updated_at` | datetime | |
+
+**Foreign Keys:** `lead_id` references `leads(id)`, `user_id` references `users(id)`
+**Indexes:** `index_notes_on_lead_id`, `index_notes_on_user_id`
 
 ### Activities
 | Column | Type | Description |
@@ -208,6 +261,38 @@ The frontend will be available at `http://localhost:5173` and the backend at `ht
 | `details` | text | Human-readable description |
 | `created_at` | datetime | |
 
+**Foreign Keys:** `lead_id` references `leads(id)`, `user_id` references `users(id)`
+**Indexes:** `index_activities_on_lead_id`, `index_activities_on_user_id`
+
+### Relationships (ER Diagram)
+
+```
+User (1) ──────< Lead (assigned_to)  : A user can be assigned many leads
+User (1) ──────< Note                 : A user can write many notes
+User (1) ──────< Activity             : A user can perform many activities
+Lead  (1) ──────< Note                : A lead can have many notes
+Lead  (1) ──────< Activity            : A lead can have many activities
+```
+
+### Lead Lifecycle
+
+The `status` column tracks the lead through a defined sales pipeline:
+
+```
+New → Contacted → Qualified → Proposal Sent → Won
+  ↘
+   Lost
+```
+
+- **New**: Lead just submitted via public form or created manually
+- **Contacted**: Initial outreach made
+- **Qualified**: Lead meets criteria and is a potential customer
+- **Proposal Sent**: Formal proposal/quote sent to the lead
+- **Won**: Lead converted to a customer
+- **Lost**: Lead did not convert (can end at any stage)
+
+All status transitions are recorded in the `activities` table for a complete audit trail.
+
 ## API Documentation
 
 All endpoints return JSON. Authenticated endpoints require `Authorization: Bearer <token>` header.
@@ -217,6 +302,8 @@ All endpoints return JSON. Authenticated endpoints require `Authorization: Beare
 #### POST /api/login
 Login with email and password.
 
+**Authentication:** None required
+
 **Request:**
 ```json
 {
@@ -225,7 +312,7 @@ Login with email and password.
 }
 ```
 
-**Response (200):**
+**Success Response (200):**
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiJ9...",
@@ -239,10 +326,18 @@ Login with email and password.
 }
 ```
 
+**Error Responses:**
+- `401 Unauthorized`: Invalid email or password
+  ```json
+  { "error": "Invalid email or password" }
+  ```
+
 #### GET /api/me
 Get current authenticated user.
 
-**Response (200):**
+**Authentication:** Required (Bearer token)
+
+**Success Response (200):**
 ```json
 {
   "user": {
@@ -255,19 +350,25 @@ Get current authenticated user.
 }
 ```
 
-### Leads
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
 
 #### GET /api/leads
 List leads with pagination, search, and filtering.
 
+**Authentication:** Required (Bearer token)
+
 **Query Parameters:**
 - `page` (default: 1)
 - `per_page` (default: 10)
-- `search` (optional)
+- `search` (optional: searches name, email, company, phone)
 - `status` (optional: new_lead, contacted, qualified, proposal_sent, won, lost)
 - `assigned_to_id` (optional)
 
-**Response (200):**
+**Success Response (200):**
 ```json
 {
   "data": [
@@ -289,19 +390,25 @@ List leads with pagination, search, and filtering.
   ],
   "meta": {
     "current_page": 1,
-    "next_page": 2,
-    "prev_page": null,
     "total_pages": 3,
     "total_count": 25,
-    "limit": 10
+    "per_page": 10
   }
 }
 ```
 
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+
 #### GET /api/leads/:id
 Get lead details with notes and activities.
 
-**Response (200):**
+**Authentication:** Required (Bearer token)
+
+**Success Response (200):**
 ```json
 {
   "lead": { ... },
@@ -310,8 +417,24 @@ Get lead details with notes and activities.
 }
 ```
 
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `404 Not Found`: Lead does not exist
+  ```json
+  { "error": "Lead not found" }
+  ```
+- `403 Forbidden`: Not authorized to view this lead
+  ```json
+  { "error": "Forbidden" }
+  ```
+
 #### POST /api/leads
 Create a new lead (public, no authentication required).
+
+**Authentication:** None required (public)
 
 **Request:**
 ```json
@@ -324,23 +447,82 @@ Create a new lead (public, no authentication required).
 }
 ```
 
-**Response (201):**
+**Success Response (201):**
 ```json
 {
   "data": { ... }
 }
 ```
 
+**Error Responses:**
+- `422 Unprocessable Entity`: Validation failed
+  ```json
+  { "errors": ["Name can't be blank", "Email is invalid"] }
+  ```
+
 #### PATCH /api/leads/:id
 Update lead details (admin or assigned member).
+
+**Authentication:** Required (Bearer token)
+
+**Request:**
+```json
+{
+  "name": "Updated Name",
+  "company": "New Company"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "data": { ... }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not authorized to update this lead
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `404 Not Found`: Lead does not exist
+  ```json
+  { "error": "Lead not found" }
+  ```
+- `422 Unprocessable Entity`: Validation failed
+  ```json
+  { "errors": ["Name can't be blank"] }
+  ```
 
 #### DELETE /api/leads/:id
 Delete a lead (admin only).
 
-**Response (204):** No content
+**Authentication:** Required (Bearer token)
+
+**Success Response (204):** No content
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not authorized to delete this lead (member)
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `404 Not Found`: Lead does not exist
+  ```json
+  { "error": "Lead not found" }
+  ```
 
 #### PATCH /api/leads/:id/update_status
 Update lead status (admin or assigned member).
+
+**Authentication:** Required (Bearer token)
 
 **Request:**
 ```json
@@ -349,8 +531,35 @@ Update lead status (admin or assigned member).
 }
 ```
 
+**Success Response (200):**
+```json
+{
+  "data": { ... }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not authorized to change status
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `404 Not Found`: Lead does not exist
+  ```json
+  { "error": "Lead not found" }
+  ```
+- `422 Unprocessable Entity`: Invalid status value
+  ```json
+  { "errors": ["Status is not included in the list"] }
+  ```
+
 #### PATCH /api/leads/:id/assign
 Assign lead to a user (admin only).
+
+**Authentication:** Required (Bearer token)
 
 **Request:**
 ```json
@@ -359,8 +568,31 @@ Assign lead to a user (admin only).
 }
 ```
 
+**Success Response (200):**
+```json
+{
+  "data": { ... }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not authorized to assign leads (member)
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `404 Not Found`: Lead or target user does not exist
+  ```json
+  { "error": "User not found" }
+  ```
+
 #### POST /api/leads/:id/add_note
 Add a note to a lead (admin or assigned member).
+
+**Authentication:** Required (Bearer token)
 
 **Request:**
 ```json
@@ -369,7 +601,7 @@ Add a note to a lead (admin or assigned member).
 }
 ```
 
-**Response (201):**
+**Success Response (201):**
 ```json
 {
   "data": {
@@ -382,23 +614,120 @@ Add a note to a lead (admin or assigned member).
 }
 ```
 
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not authorized to add notes
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `404 Not Found`: Lead does not exist
+  ```json
+  { "error": "Lead not found" }
+  ```
+- `422 Unprocessable Entity`: Note message blank
+  ```json
+  { "errors": ["Message can't be blank"] }
+  ```
+
 ### Users
 
 #### GET /api/users
-List all users (authenticated).
+List all users (admin or any authenticated user).
+
+**Authentication:** Required (Bearer token)
+
+**Success Response (200):**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "role": "admin",
+      "role_label": "Admin",
+      "created_at": "2026-07-26T05:08:11.581Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
 
 #### POST /api/users
 Create a new user (admin only).
 
+**Authentication:** Required (Bearer token, admin role)
+
+**Request:**
+```json
+{
+  "name": "New User",
+  "email": "new@example.com",
+  "password": "password123",
+  "role": "member"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "data": {
+    "id": 3,
+    "name": "New User",
+    "email": "new@example.com",
+    "role": "member",
+    "role_label": "Member"
+  }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not admin
+  ```json
+  { "error": "Forbidden" }
+  ```
+- `422 Unprocessable Entity`: Validation failed
+  ```json
+  { "errors": ["Email has already been taken"] }
+  ```
+
 #### DELETE /api/users/:id
 Delete a user (admin only).
+
+**Authentication:** Required (Bearer token, admin role)
+
+**Success Response (204):** No content
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
+- `403 Forbidden`: Not admin
+  ```json
+  { "error": "Forbidden" }
+  ```
 
 ### Dashboard
 
 #### GET /api/dashboard
 Get dashboard statistics.
 
-**Response (200):**
+**Authentication:** Required (Bearer token)
+
+**Success Response (200):**
 ```json
 {
   "total_leads": 25,
@@ -410,6 +739,12 @@ Get dashboard statistics.
   "lost": 6
 }
 ```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid token
+  ```json
+  { "error": "Unauthorized" }
+  ```
 
 ## Testing
 
@@ -426,12 +761,27 @@ bundle exec rspec --format documentation   # Detailed output
 
 ### Test Coverage
 
-- **Authentication Tests**: Login, token validation, unauthorized access
-- **Authorization Tests**: Admin vs Member permissions for all actions
-- **CRUD Tests**: Lead creation, listing, details, update, delete
-- **Lead Assignment Tests**: Admin assignment, member restrictions
-- **Model Tests**: Validations, associations, enums, scopes
-- **Policy Tests**: Pundit policy rules for all actions
+#### Backend Test Coverage (RSpec)
+
+| Category | Files | What's Covered |
+|---|---|---|
+| Authentication | `spec/requests/auth_spec.rb` | Login success, invalid password, nonexistent user, `/me` with valid/invalid/missing token |
+| Lead CRUD | `spec/requests/leads_spec.rb` | Create (public), list (paginated, filtered, scoped), show, update, delete — with admin & member roles |
+| Lead Assignment | `spec/requests/leads_spec.rb` | Admin can assign, member cannot; status change by admin/assigned member |
+| Notes | `spec/requests/leads_spec.rb` | Add note as admin, add note as assigned member |
+| User Management | `spec/requests/users_spec.rb` | List users, create user (admin only), delete user (admin only) |
+| Dashboard | `spec/requests/dashboard_spec.rb` | Stats for admin (all leads), stats for member (assigned only), unauthorized access |
+| Models | `spec/models/user_spec.rb`, `lead_spec.rb`, `note_spec.rb`, `activity_spec.rb` | Validations, associations, enums, scopes, factories |
+| Policies | `spec/policies/lead_policy_spec.rb` | Full Pundit policy matrix: index, show, create, update, destroy, assign, update_status, add_note — admin vs member vs non-assigned member |
+
+#### Business Flows Covered
+
+- ✅ Public lead submission flow (unauthenticated POST /api/leads)
+- ✅ Authenticated admin flow (login → list all leads → view/edit/delete any lead → manage users)
+- ✅ Authenticated member flow (login → list assigned leads only → view/edit assigned leads → add notes → change status)
+- ✅ Permission enforcement (member cannot delete leads, assign leads, or access unassigned leads)
+- ✅ Authentication enforcement (unauthenticated requests return 401)
+- ✅ Pagination and filtering (search, status filter, assigned user filter)
 
 ### Frontend Tests
 
@@ -439,6 +789,8 @@ bundle exec rspec --format documentation   # Detailed output
 cd frontend
 npm test
 ```
+
+**Note:** Frontend tests are not yet implemented. The test command returns "Error: no test specified". To add tests, a testing framework such as Vitest or React Testing Library can be configured.
 
 ## Deployment
 
@@ -482,6 +834,49 @@ docker run -p 5173:5173 leadmanager-frontend
 
 - **Admin**: `admin@example.com` / `password123`
 - **Member**: `member1@example.com` / `password123`
+
+## Assignment Requirement Verification
+
+| Requirement | Status | Notes |
+|---|---|---|
+| Public Capture Form | ✅ | `/lead/new` route, no authentication required |
+| JWT Authentication | ✅ | Token-based, 24-hour expiry, Bearer header |
+| Admin Role | ✅ | Full access to all leads and management features |
+| Member Role | ✅ | Restricted to assigned leads only |
+| Client-side Authorization | ✅ | ProtectedRoute component, isAdmin UI checks |
+| Server-side Authorization | ✅ | Pundit policies on all actions |
+| Lead Assignment | ✅ | Admin can assign leads to any member |
+| Notes with Timestamp | ✅ | Notes model with user, message, and timestamps |
+| Activity Trail | ✅ | Actions tracked: lead_created, lead_assigned, status_changed, note_added |
+| Pagination | ✅ | Kaminari gem, page/per_page parameters |
+| Filtering | ✅ | Search, status filter, assigned user filter |
+| Proper Status Codes | ✅ | 200, 201, 204, 401, 403, 404, 422 used appropriately |
+| Automated Tests | ⚠️ | Backend only (RSpec) — frontend tests not implemented |
+| Deployment | ❌ | Not yet deployed — no live URLs available |
+| API Documentation | ✅ | Full documentation in this README |
+| .env.example files | ✅ | `backend/.env.example` and `frontend/.env.example` |
+| Permission Matrix | ✅ | Documented in Role Permissions section |
+| ER Diagram & Relationships | ✅ | Documented in Database Schema section |
+
+## Live Build Requirement
+
+The frontend footer must display:
+
+**"Built for Digital Heroes Training Task"**
+
+linked to **https://digitalheroesco.com**
+
+**Current Status:** ❌ Not implemented
+
+**Implementation Note:** The footer should be added to `frontend/src/components/Layout.jsx` (for authenticated pages) and directly to `frontend/src/pages/Login.jsx` and `frontend/src/pages/PublicLeadForm.jsx` (for public pages). Example:
+
+```jsx
+<footer className="text-center py-4 text-sm text-gray-500 border-t border-gray-200">
+  <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition">
+    Built for Digital Heroes Training Task
+  </a>
+</footer>
+```
 
 ## License
 
