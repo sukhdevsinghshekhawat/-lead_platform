@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  root to: redirect("/api/up")
   get "up" => "rails/health#show", as: :rails_health_check
 
   namespace :api do
